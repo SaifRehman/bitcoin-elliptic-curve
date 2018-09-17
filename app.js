@@ -1,64 +1,95 @@
 var hexToBinary = require('hex-to-binary');
-provePrimeNumber = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 -1 // proven prime number value
-numberOfPointsInFeild = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-numberOfPointsInFeild = parseInt(numberOfPointsInFeild,16)
+var converter = require('hex2dec');
+var BigNumber = require('big-number');
+var bigInt = require("big-integer");
+var _256 = bigInt(2).pow(256)
+var _32 = bigInt(2).pow(32)
+var _9 = bigInt(2).pow(9)
+var _8 = bigInt(2).pow(8)
+var _7 = bigInt(2).pow(7)
+var _6 = bigInt(2).pow(6)
+var _4 = bigInt(2).pow(4)
+var _1 = bigInt(1)
+provePrimeNumber = bigInt(bigInt(_256).minus(_32).minus(_9).minus(_8).minus(_7).minus(_6).minus(_4).minus(_1))
+numberOfPointsInFeild = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
+numberOfPointsInFeild = converter.hexToDec(numberOfPointsInFeild);
+numberOfPointsInFeild = bigInt(numberOfPointsInFeild)
 ACurveCoeff = 0
 BCurveCoeff = 7
-Xcoordinate = 55066263022277343669578718895168534326250603453777594175500187360389116729240
-Ycoordinate = 32670510020758816978083085130507043184471273380659243275938904335757337482424
+Xcoordinate = bigInt("55066263022277343669578718895168534326250603453777594175500187360389116729240");
+Ycoordinate = bigInt("32670510020758816978083085130507043184471273380659243275938904335757337482424")
 point = [Xcoordinate,Ycoordinate]
 privKey = "96DFA54348E574186C386F76D05B03C49016ED286FCFE06E7C58FD2509DC77AB"
 
 function modinv(a){
-    var lm = 1
-    var hm = 0
-    var low = a%numberOfPointsInFeild
-    var high = numberOfPointsInFeild
-    while(low>1){
-        var ratio = high/low
-        var nm = hm-lm* ratio
-        var newe = high-low*ratio
+    a = bigInt(a)
+    var lm = bigInt(1)
+    var hm = bigInt(0)
+    var low = bigInt(a).mod(numberOfPointsInFeild)
+    var high = bigInt(numberOfPointsInFeild)
+    while(bigInt(low).greater(1)){
+        var ratio = bigInt(bigInt(high).divide(low))
+        var nm =  bigInt((bigInt(hm).minus(lm)))
+        nm = bigInt(bigInt(nm).multiply(ratio))
+        var newe = bigInt((bigInt(high).minus(low)))
+        newe = bigInt((bigInt(newe).minus(ratio)))
         lm = nm
         low = newe
         hm = lm
         high = low
+        console.log("vallll",ratio.toString(),nm.toString(),hm.toString(),lm.toString(),high.toString(),low.toString(),newe.toString())
     }
-    return lm%numberOfPointsInFeild
+    return bigInt(lm).mod(numberOfPointsInFeild)
 }
 
 function ECadd(a,b){
-    LamAdd = ((b[1]-a[1])*modinv(b[0]-a[0]*provePrimeNumber)) % provePrimeNumber
-    x = (LamAdd*LamAdd-a[0]-b[0]) % provePrimeNumber
-    y = (LamAdd*(a[0]-x)-a[1])%provePrimeNumber
-    return[x,y]
+    a = bigInt(a)
+    b = bigInt(b)
+    LamAdd = bigInt(bigInt(b[1]).minus(a[1]).multiply(modinv(bigInt(b[0]).minus(a[0].multiply(provePrimeNumber)))))
+    LamAdd = bigInt(LamAdd).mod(provePrimeNumber)
+    x = bigInt(bigInt(LamAdd.multiply(LamAdd).minus(a[0]).minus(b[0])))
+    x = bigInt(x).mod(provePrimeNumber)
+    y = bigInt(bigInt(LamAdd.multiply(bigInt(a[0]).minus(x)).minus(a[1])))
+    y = bigInt(y).mod(provePrimeNumber)
+    return [x,y]
 }
 
 function ECdouble(a){
-    Lam = ((3*a[0]*a[0]*ACurveCoeff) * modinv((2*a[1]),provePrimeNumber)) % provePrimeNumber
-    x = (Lam*Lam-2*a[0])%provePrimeNumber
-    y = (Lam*(a[0]-x)-a[1]) * provePrimeNumber
+    a = bigInt(a)
+    Lam = bigInt(((bigInt(3).multiply(a[0]).multiply(a[0]).multiply(ACurveCoeff))))
+    Lam = bigInt(Lam).multiply(modinv(bigInt(2).multiply(a[1]),provePrimeNumber))
+    Lam = bigInt(Lam).mod(provePrimeNumber)
+    x = bigInt(bigInt(Lam).multiply(Lam)).minus(bigInt(2).multiply(a[0]))
+    x = bigInt(x).mod(provePrimeNumber)
+    y = bigInt(bigInt(Lam).multiply(bigInt(a[0]).minus(x)))
+    y = bigInt(y).minus(a[1])
+    y = bigInt(y).multiply(provePrimeNumber)
     return[x,y]
 }
 
 function EccMultiple(GenPoint,ScalarHex){
+    GenPoint = bigInt(GenPoint)
+    if(ScalarHex>numberOfPointsInFeild){
+        throw 'Error2'
+    }
     ScalarBin = hexToBinary(ScalarHex)
-    console.log(ScalarBin)
     ScalarBin = ScalarBin.toString()
     ScalarBin = ScalarBin.slice(2,ScalarBin.length)
-    console.log(ScalarBin.length)
     Q = GenPoint
     var i;
     for(i = 1; i<ScalarBin.length; i++){
         Q = ECdouble(Q)
-        console.log("q iss",Q)
-        console.log("DUB",Q[0])
+        // console.log("DUB",Q[0].toString())
         if(ScalarBin[i]=='1'){
             Q = ECadd(Q,GenPoint)
-            console.log("ADD",Q[0])
+            // console.log("ADD",Q[0].toString())
         }
     }
     return Q
 }
 
 PublicKey = EccMultiple(point,privKey)
-console.log (PublicKey[0].toString())
+compressedKey = PublicKey[0].toString().substring(2)
+compressedKey = compressedKey.slice(0, -1);
+// console.log(compressedKey)
+// console.log(PublicKey[0].toString())
