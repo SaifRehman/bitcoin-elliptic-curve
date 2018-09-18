@@ -60,4 +60,3 @@ puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16);
 #     print "03"+str(hex(PublicKey[0])[2:-1]).zfill(64)
 # else: # Or else, if the Y value is even.
 #     print "02"+str(hex(PublicKey[0])[2:-1]).zfill(64)
-
