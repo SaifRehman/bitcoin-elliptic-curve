@@ -8,14 +8,14 @@ $privKey = "A0DC65FFCA799873CBEA0AC274015B9526505DAAAED385155425F7337704883E"
 $point  = Array.new([$xcoordinate,$ycoordinate])
 
 def modInverse (var)
-    $lm = 1
-    $hm = 0
-    $low = var % $provePrimeNumber
-    $high = $provePrimeNumber
-    while $low > 1 do
-        ratio = $high/$low
-        nm, enew = $hm-$lm*ratio, $high-$low*ratio
-        $lm, $low, $hm, $high = nm, enew, $lm, $low
+    lm = 1
+    hm = 0
+    low = var % $provePrimeNumber
+    high = $provePrimeNumber
+    while low > 1 do
+        ratio = high/low
+        nm, enew = hm-lm*ratio, high-low*ratio
+        lm, low, hm, high = nm, enew, lm, low
     end
     return nm % $provePrimeNumber
 end
