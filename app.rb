@@ -29,13 +29,10 @@ end
 def generateSHA256(var)
     q = Digest::SHA256.hexdigest var
     return q.to_i(16)
-    # return 86032112319101611046176971828093669637772856272773459297323797145286374828050
 end
 
 def randomNumberGeneration
-    #28695618543805844332113829720373285210420739438570883203839696518176414791234
     return rand $randLow..$randHigh 
-    # return 28695618543805844332113829720373285210420739438570883203839696518176414791234
 end
 
 def modInverse (var,n)
@@ -74,10 +71,10 @@ def EccMultiply(genPoint,scalarHex)
     q=genPoint
     for i in 1..scalarBin.length-1
         q=ECdouble(q) 
-        # puts "DUB", q[0]
+        puts "DUB", q[0]
         if scalarBin[i] == '1'
             q=ECadd(q,genPoint)
-            # puts "ADD", q[0]
+            puts "ADD", q[0]
         end
     end
     return [q]
@@ -85,7 +82,6 @@ end
 
 def SignatureGeneration(genPoint,randomNumber,hashOfThingToSign)
     q = EccMultiply(genPoint,randomNumber)
-    puts "qqqqqqqq",q[0]
     xRandSignPoint = q[0][0]
     yRandSignPoint = q[0][1]
     r = xRandSignPoint % $numberOfPointsInFeild;
@@ -108,7 +104,6 @@ def SignatureVerification(s,r,hashOfThingToSign,publicKey)
     end
 end
 
-# puts generateSHA256("saif")
 publicKey = EccMultiply($point,hextodec($privKey))
 puts "the uncompressed public key (HEX):";
 puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
@@ -116,9 +111,9 @@ sha256hash = generateSHA256("saif")
 r,s= SignatureGeneration($point,(randomNumberGeneration()),sha256hash)
 result = SignatureVerification(s,r,sha256hash,publicKey[0])
 puts result
-# puts publicKey
-# puts "the uncompressed public key (HEX):";
-# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+puts publicKey
+puts "the uncompressed public key (HEX):";
+puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
 
 # print "the official Public Key - compressed:"; 
 # if PublicKey[1] % 2 == 1: # If the Y value for the Public Key is odd.
