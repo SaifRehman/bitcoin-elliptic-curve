@@ -1,3 +1,5 @@
+require 'digest'
+
 $provePrimeNumber = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 -1
 $numberOfPointsInFeild = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 $Acurve = 0
@@ -8,9 +10,16 @@ $point  = Array.new([$xcoordinate,$ycoordinate])
 $hashOfThingToSign = 86032112319101611046176971828093669637772856272773459297323797145286374828050 
 $randLow =  1000000000000000000000000000000000000000000000000000000000000000000000000000
 $randHigh = 9999999999999999999999999999999999999999999999999999999999999999999999999999
+
+def generateSHA256(var)
+    q = Digest::SHA256.hexdigest var
+    return q.to_i(16)
+end
+
 def randomNumberGeneration
     return rand $randLow..$randHigh 
 end
+
 def modInverse (var)
     lm = 1
     hm = 0
@@ -78,7 +87,8 @@ def SignatureVerification(s,r)
         return false
     end
 end
-puts randomNumberGeneration()
+
+puts generateSHA256("saif")
 # publicKey = EccMultiply($point,$privKey)
 # puts "the uncompressed public key (HEX):";
 # puts publicKey
