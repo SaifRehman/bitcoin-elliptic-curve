@@ -6,6 +6,8 @@ $xcoordinate = 55066263022277343669578718895168534326250603453777594175500187360
 $ycoordinate = 32670510020758816978083085130507043184471273380659243275938904335757337482424
 $privKey = "A0DC65FFCA799873CBEA0AC274015B9526505DAAAED385155425F7337704883E"
 $point  = Array.new([$xcoordinate,$ycoordinate])
+$RandNum = 28695618543805844332113829720373285210420739438570883203839696518176414791234 #replace with a truly random number
+$HashOfThingToSign = 86032112319101611046176971828093669637772856272773459297323797145286374828050 # the hash of your message/transaction
 
 def modInverse (var)
     lm = 1
@@ -51,6 +53,30 @@ def EccMultiply(genPoint,scalarHex) #Double & add. Not true multiplication
     end
     return [q]
 end
+
+def SignatureGeneration(genPoint,randomNumber)
+    q = EccMultiply(genPoint,randomNumber)
+    xRandSignPoint = q[0]
+    yRandSignPoint = q[1]
+    r = xRandSignPoint % $numberOfPointsInFeild;
+    s = (($HashOfThingToSign + r*$privKey)*(modInverse(randomNumber))) % $numberOfPointsInFeild
+    return [r,s]
+end
+
+def SignatureVerification(s,r)
+    w = modinv(s)
+    point1 = EccMultiply(Gx,Gy,(HashOfThingToSign * w) % $numberOfPointsInFeild)
+    point2 = EccMultiply(publicKey,(r*w) % $numberOfPointsInFeild)
+    q  = ECadd(point1,point2)
+    x = q[0]
+    y = q[1]
+    if(x == r)
+        return true
+    else
+        return false
+    end
+end
+
 publicKey = EccMultiply($point,$privKey)
 puts "the uncompressed public key (HEX):";
 puts publicKey
