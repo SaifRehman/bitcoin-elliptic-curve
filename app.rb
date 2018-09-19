@@ -1,14 +1,16 @@
 $provePrimeNumber = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 -1
 $numberOfPointsInFeild = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 $Acurve = 0
-$Bcurve = 7
 $xcoordinate = 55066263022277343669578718895168534326250603453777594175500187360389116729240
 $ycoordinate = 32670510020758816978083085130507043184471273380659243275938904335757337482424
 $privKey = "A0DC65FFCA799873CBEA0AC274015B9526505DAAAED385155425F7337704883E"
 $point  = Array.new([$xcoordinate,$ycoordinate])
-$RandNum = 28695618543805844332113829720373285210420739438570883203839696518176414791234 #replace with a truly random number
-$HashOfThingToSign = 86032112319101611046176971828093669637772856272773459297323797145286374828050 # the hash of your message/transaction
-
+$hashOfThingToSign = 86032112319101611046176971828093669637772856272773459297323797145286374828050 
+$randLow =  1000000000000000000000000000000000000000000000000000000000000000000000000000
+$randHigh = 9999999999999999999999999999999999999999999999999999999999999999999999999999
+def randomNumberGeneration
+    return rand $randLow..$randHigh 
+end
 def modInverse (var)
     lm = 1
     hm = 0
@@ -59,13 +61,13 @@ def SignatureGeneration(genPoint,randomNumber)
     xRandSignPoint = q[0]
     yRandSignPoint = q[1]
     r = xRandSignPoint % $numberOfPointsInFeild;
-    s = (($HashOfThingToSign + r*$privKey)*(modInverse(randomNumber))) % $numberOfPointsInFeild
+    s = (($hashOfThingToSign + r*$privKey)*(modInverse(randomNumber))) % $numberOfPointsInFeild
     return [r,s]
 end
 
 def SignatureVerification(s,r)
     w = modinv(s)
-    point1 = EccMultiply(Gx,Gy,(HashOfThingToSign * w) % $numberOfPointsInFeild)
+    point1 = EccMultiply(Gx,Gy,($hashOfThingToSign * w) % $numberOfPointsInFeild)
     point2 = EccMultiply(publicKey,(r*w) % $numberOfPointsInFeild)
     q  = ECadd(point1,point2)
     x = q[0]
@@ -76,11 +78,11 @@ def SignatureVerification(s,r)
         return false
     end
 end
-
-publicKey = EccMultiply($point,$privKey)
-puts "the uncompressed public key (HEX):";
-puts publicKey
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+puts randomNumberGeneration()
+# publicKey = EccMultiply($point,$privKey)
+# puts "the uncompressed public key (HEX):";
+# puts publicKey
+# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
 # print "the official Public Key - compressed:"; 
 # if PublicKey[1] % 2 == 1: # If the Y value for the Public Key is odd.
 #     print "03"+str(hex(PublicKey[0])[2:-1]).zfill(64)
