@@ -40,7 +40,7 @@ def hex_to_bin(s)
     return s.to_i(16).to_s(2)
 end
 
-def EccMultiply(genPoint,scalarHex) #Double & add. Not true multiplication
+def EccMultiply(genPoint,scalarHex)
     scalarBin = hex_to_bin(scalarHex)
     q=genPoint
     for i in 1..scalarBin.length-1
