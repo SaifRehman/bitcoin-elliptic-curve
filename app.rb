@@ -7,11 +7,18 @@ $ycoordinate = 32670510020758816978083085130507043184471273380659243275938904335
 $privKey = "A665A45920422F9D417E4867EFDC4FB8A04A1F3FFF1FA07E998E86F7F7A27AE3"
 $point  = Array.new([$xcoordinate,$ycoordinate])
 $hashOfThingToSign = 86032112319101611046176971828093669637772856272773459297323797145286374828050 
-$randLow =  1000000000000000000000000000000000000000000000000000000000000000000000000000
-$randHigh = 9999999999999999999999999999999999999999999999999999999999999999999999999999
+$randLow =  100
+$randHigh = 999
+$m = 2**32
+$a = 1103515245
+$c = 12345
 
 def dectobin(var)
     return var.to_s(2)
+end
+
+def lcg(m,a,c,val)
+    ((a*val + c) % m)/m
 end
 
 def dectohex(var)
@@ -31,8 +38,24 @@ def generateSHA256(var)
     return q.to_i(16)
 end
 
-def randomNumberGeneration
-    return rand $randLow..$randHigh 
+def randomNumberGeneration ()
+    seed = rand $randLow..$randHigh
+    seed = seed.to_f
+    iter = rand $randLow..$randHigh
+    iter = iter.to_i
+    lastVal = 0
+    counter = 0
+    while counter < iter
+        seed = (($a * seed) + $c) % $m
+        counter = counter + 1
+        lastVal = seed/$m
+    end
+    numberOfChar = ((lastVal.to_s).length)-2
+    numberOfChar = rand 2..numberOfChar
+    numberOfChar = numberOfChar.to_i
+    numberOfChar = 10**numberOfChar
+    puts (lastVal*numberOfChar)
+    return (lastVal*numberOfChar).to_i
 end
 
 def modInverse (var,n)
@@ -71,10 +94,10 @@ def EccMultiply(genPoint,scalarHex)
     q=genPoint
     for i in 1..scalarBin.length-1
         q=ECdouble(q) 
-        puts "DUB", q[0]
+        # puts "DUB", q[0]
         if scalarBin[i] == '1'
             q=ECadd(q,genPoint)
-            puts "ADD", q[0]
+            # puts "ADD", q[0]
         end
     end
     return [q]
@@ -85,7 +108,6 @@ def SignatureGeneration(genPoint,randomNumber,hashOfThingToSign)
     xRandSignPoint = q[0][0]
     yRandSignPoint = q[0][1]
     r = xRandSignPoint % $numberOfPointsInFeild;
-    puts "hashOfThingToSign",modInverse(randomNumber,$numberOfPointsInFeild)
     s = ((hashOfThingToSign + (r*hextodec($privKey)))*(modInverse(randomNumber,$numberOfPointsInFeild))) % $numberOfPointsInFeild
     return [r,s]
 end
@@ -105,15 +127,15 @@ def SignatureVerification(s,r,hashOfThingToSign,publicKey)
 end
 
 publicKey = EccMultiply($point,hextodec($privKey))
-puts "the uncompressed public key (HEX):";
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
-sha256hash = generateSHA256("saif")
+# puts "the uncompressed public key (HEX):";
+# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+# sha256hash = generateSHA256("saif")
 r,s= SignatureGeneration($point,(randomNumberGeneration()),sha256hash)
 result = SignatureVerification(s,r,sha256hash,publicKey[0])
-puts result
-puts publicKey
-puts "the uncompressed public key (HEX):";
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+# puts result
+# puts publicKey
+# puts "the uncompressed public key (HEX):";
+# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
 
 # print "the official Public Key - compressed:"; 
 # if PublicKey[1] % 2 == 1: # If the Y value for the Public Key is odd.
