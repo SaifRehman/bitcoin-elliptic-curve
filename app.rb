@@ -94,10 +94,10 @@ def EccMultiply(genPoint,scalarHex)
     q=genPoint
     for i in 1..scalarBin.length-1
         q=ECdouble(q) 
-        # puts "DUB", q[0]
+        puts "DUB", q[0]
         if scalarBin[i] == '1'
             q=ECadd(q,genPoint)
-            # puts "ADD", q[0]
+            puts "ADD", q[0]
         end
     end
     return [q]
