@@ -1,6 +1,7 @@
 require 'digest'
 $provePrimeNumber = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 -1
 $numberOfPointsInFeild = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+$Acurve = 0
 $xcoordinate = 55066263022277343669578718895168534326250603453777594175500187360389116729240
 $ycoordinate = 32670510020758816978083085130507043184471273380659243275938904335757337482424
 $privKey = "A665A45920422F9D417E4867EFDC4FB8A04A1F3FFF1FA07E998E86F7F7A27AE3"
@@ -16,6 +17,10 @@ def dectobin(var)
     return var.to_s(2)
 end
 
+def lcg(m,a,c,val)
+    ((a*val + c) % m)/m
+end
+
 def dectohex(var)
     return var.to_s(16)
 end
@@ -26,10 +31,6 @@ end
 
 def hextodec(var)
     return ("0x"+var).hex
-end
-
-def hex_to_bin(s)
-    return s.to_i(16).to_s(2)
 end
 
 def generateSHA256(var)
@@ -53,7 +54,7 @@ def randomNumberGeneration ()
     numberOfChar = rand 2..numberOfChar
     numberOfChar = numberOfChar.to_i
     numberOfChar = 10**numberOfChar
-    puts (lastVal*numberOfChar)
+    # puts (lastVal*numberOfChar)
     return (lastVal*numberOfChar).to_i
 end
 
@@ -78,21 +79,28 @@ def ECadd(a,b)
 end
 
 def ECdouble(a) 
-    lam = ((3*a[0]*a[0] * modInverse((2*a[1]),$provePrimeNumber)) % $provePrimeNumber
+    lam = ((3*a[0]*a[0]+ $Acurve) * modInverse((2*a[1]),$provePrimeNumber)) % $provePrimeNumber
     x = (lam*lam-2*a[0]) % $provePrimeNumber
     y = (lam*(a[0]-x)-a[1]) % $provePrimeNumber
     return [x,y]
 end
 
+def hex_to_bin(s)
+    return s.to_i(16).to_s(2)
+end
+
 def EccMultiply(genPoint,scalarHex)
+    if scalarHex > $numberOfPointsInFeild || scalarHex === 0
+        raise "error, invalid uncondition"
+    end
     scalarBin = dectobin(scalarHex)
     q=genPoint
     for i in 1..scalarBin.length-1
         q=ECdouble(q) 
-        puts "DUB", q[0]
+        # puts "DUB", q[0]
         if scalarBin[i] == '1'
             q=ECadd(q,genPoint)
-            puts "ADD", q[0]
+            # puts "ADD", q[0]
         end
     end
     return [q]
@@ -121,13 +129,17 @@ def SignatureVerification(s,r,hashOfThingToSign,publicKey)
     end
 end
 
-publicKey = EccMultiply($point,hextodec($privKey))
-puts "the uncompressed public key (HEX):";
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
-puts publicKey
-puts "the uncompressed public key (HEX):";
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
-sha256hash = generateSHA256("saif")
-r,s= SignatureGeneration($point,(randomNumberGeneration()),sha256hash)
-result = SignatureVerification(s,r,sha256hash,publicKey[0])
-puts result
+
+iy = modInverse($ycoordinate, $provePrimeNumber)
+puts iy
+puts  ECadd([$xcoordinate, iy], [$xcoordinate,$ycoordinate])
+# publicKey = EccMultiply($point,hextodec($privKey))
+# puts "the uncompressed public key (HEX):";
+# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+# sha256hash = generateSHA256("saif")
+# r,s= SignatureGeneration($point,(randomNumberGeneration()),sha256hash)
+# result = SignatureVerification(s,r,sha256hash,publicKey[0])
+# puts result
+# puts publicKey
+# puts "the uncompressed public key (HEX):";
+# puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
