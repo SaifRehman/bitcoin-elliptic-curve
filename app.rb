@@ -138,4 +138,4 @@ result = SignatureVerification(s,r,sha256hash,publicKey[0])
 puts result
 puts publicKey
 puts "the uncompressed public key (HEX):";
-puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16); 
+puts "04" + publicKey[0][0].to_s(16) + publicKey[0][1].to_s(16);
